@@ -7,6 +7,7 @@ export const UserProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [salons, setSalons] = useState([]);
   const [activeSalonId, setActiveSalonId] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // Base URL for the API
   const BASE_URL = "https://web-production-0344e.up.railway.app/api";
@@ -154,19 +155,25 @@ export const UserProvider = ({ children }) => {
 
   // Load user from local storage on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const storedToken = localStorage.getItem("token");
-    if (storedUser && storedToken) {
-      try {
-        setUser(JSON.parse(storedUser));
-        setToken(storedToken);
-        // Fetch fresh data
-        fetchUserProfile(storedToken);
-      } catch (e) {
-        // If parsing fails, clear storage
-        logout();
+    const initializeUser = async () => {
+      const storedUser = localStorage.getItem("user");
+      const storedToken = localStorage.getItem("token");
+      
+      if (storedUser && storedToken) {
+        try {
+          setUser(JSON.parse(storedUser));
+          setToken(storedToken);
+          // Fetch fresh data
+          await fetchUserProfile(storedToken);
+        } catch (e) {
+          // If parsing fails, clear storage
+          logout();
+        }
       }
-    }
+      setLoading(false);
+    };
+
+    initializeUser();
   }, []);
 
   return (
@@ -174,6 +181,7 @@ export const UserProvider = ({ children }) => {
       user, 
       token, 
       salons,
+      loading,
       activeSalonId,
       setActiveSalonId,
       addSalon,

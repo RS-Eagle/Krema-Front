@@ -13,17 +13,21 @@ import {
 } from "lucide-react";
 import { useServices } from "../context/ServiceContext";
 import { useStaff } from "../context/StaffContext";
+import { useAppointment } from "../context/AppointmentContext";
+import { useUser } from "../context/UserContext";
 
 export default function DashboardPage() {
-  const { activeSalonId, services, loading: servicesLoading } = useServices();
+  const { loading: userLoading, activeSalonId } = useUser();
+  const { services, loading: servicesLoading } = useServices();
   const { allStaff, loading: staffLoading } = useStaff();
+  const { appointments, loading: appointmentsLoading, fetchAppointments } = useAppointment();
   
-  const loading = servicesLoading || staffLoading;
+  const loading = userLoading || servicesLoading || staffLoading || appointmentsLoading;
 
   // Derived Stats
   const activeStaffCount = allStaff ? allStaff.filter(s => s.is_active).length : 0;
   const totalServicesCount = services ? services.length : 0;
-
+  
   return (
     <div className="space-y-6">
       
@@ -79,7 +83,7 @@ export default function DashboardPage() {
               <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">View Calendar</button>
            </div>
            <div className="p-0 overflow-x-auto">
-              <AppointmentsTable salonId={activeSalonId} loading={loading} />
+              <AppointmentsTable appointments={appointments} loading={loading} />
            </div>
         </div>
 
@@ -136,7 +140,21 @@ function StatCard({ title, value, icon: Icon, trend, subtext, color, loading }) 
   );
 }
 
-function AppointmentsTable({ salonId, loading }) {
+function AppointmentsTable({ appointments = [], loading }) {
+  const { allStaff } = useStaff();
+
+  // Helper to find staff name
+  const getStaffName = (staffId) => {
+    if (!staffId) return "Unassigned";
+    // Check if staff object is passed directly (unlikely based on user input, but good for safety)
+    if (typeof staffId === 'object') {
+       return staffId.name || `${staffId.first_name || ''} ${staffId.last_name || ''}`;
+    }
+    // Find in context
+    const staff = allStaff.find(s => s.id === staffId);
+    return staff ? (staff.name || `${staff.first_name || ''} ${staff.last_name || ''}`.trim()) : "Unknown Staff";
+  };
+
   if (loading) {
     return (
         <div className="p-5 space-y-4">
@@ -145,10 +163,7 @@ function AppointmentsTable({ salonId, loading }) {
     );
   }
 
-  // No appointments data available yet
-  const appointments = [];
-
-  if (appointments.length === 0) {
+  if (!appointments || appointments.length === 0) {
     return (
       <div className="p-8 text-center text-gray-500">
         <Calendar className="mx-auto h-12 w-12 text-gray-300 mb-3" />
@@ -163,7 +178,6 @@ function AppointmentsTable({ salonId, loading }) {
             <tr>
                 <th className="px-5 py-3 font-medium">Time</th>
                 <th className="px-5 py-3 font-medium">Client</th>
-                <th className="px-5 py-3 font-medium">Service</th>
                 <th className="px-5 py-3 font-medium">Staff</th>
                 <th className="px-5 py-3 font-medium text-right">Status</th>
             </tr>
@@ -173,11 +187,10 @@ function AppointmentsTable({ salonId, loading }) {
                 <tr key={appt.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-5 py-4 text-gray-600 font-medium whitespace-nowrap flex items-center gap-2">
                         <Clock size={14} className="text-gray-400" />
-                        {appt.time}
+                        {new Date(appt.start_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                     </td>
-                    <td className="px-5 py-4 font-medium text-gray-900">{appt.client}</td>
-                    <td className="px-5 py-4 text-gray-600">{appt.service}</td>
-                    <td className="px-5 py-4 text-gray-500">{appt.staff}</td>
+                    <td className="px-5 py-4 font-medium text-gray-900">{appt.customer_name || "Unknown"}</td>
+                    <td className="px-5 py-4 text-gray-500">{getStaffName(appt.staff_id || appt.staff)}</td>
                     <td className="px-5 py-4 text-right">
                         <StatusBadge status={appt.status} />
                     </td>
@@ -192,12 +205,13 @@ function StatusBadge({ status }) {
     const styles = {
         confirmed: "bg-blue-50 text-blue-700",
         completed: "bg-emerald-50 text-emerald-700",
+        done: "bg-emerald-50 text-emerald-700",
         pending: "bg-orange-50 text-orange-700",
         cancelled: "bg-red-50 text-red-700"
     };
 
     return (
-        <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${styles[status]}`}>
+        <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${styles[status] || "bg-gray-100 text-gray-800"}`}>
             {status}
         </span>
     );

@@ -300,7 +300,6 @@ export default function Appointment() {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Staff</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -309,7 +308,7 @@ export default function Appointment() {
           <tbody className="bg-white divide-y divide-gray-200">
             {appointments.length === 0 ? (
               <tr>
-                <td colSpan="5" className="px-6 py-4 text-center text-gray-500">
+                <td colSpan="4" className="px-6 py-4 text-center text-gray-500">
                   No appointments found.
                 </td>
               </tr>
@@ -325,11 +324,15 @@ export default function Appointment() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{app.service?.name || "Unknown Service"}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
-                      {app.staff ? (app.staff.name || `${app.staff.first_name || ''} ${app.staff.last_name || ''}`) : "Unassigned"}
+                      {(() => {
+                        // Helper to find staff name
+                        const staffId = app.staff_id || app.staff;
+                        if (!staffId) return "Unassigned";
+                        if (typeof staffId === 'object') return staffId.name || `${staffId.first_name || ''} ${staffId.last_name || ''}`;
+                        const staff = allStaff.find(s => s.id === staffId);
+                        return staff ? (staff.name || `${staff.first_name || ''} ${staff.last_name || ''}`) : "Unknown Staff";
+                      })()}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
