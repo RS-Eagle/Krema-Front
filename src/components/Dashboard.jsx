@@ -177,7 +177,7 @@ function AppointmentsTable({ appointments = [], loading }) {
         <thead className="bg-gray-50 border-b border-gray-100 text-gray-500">
             <tr>
                 <th className="px-5 py-3 font-medium">Time</th>
-                <th className="px-5 py-3 font-medium">Client</th>
+                
                 <th className="px-5 py-3 font-medium">Staff</th>
                 <th className="px-5 py-3 font-medium text-right">Status</th>
             </tr>
@@ -189,7 +189,7 @@ function AppointmentsTable({ appointments = [], loading }) {
                         <Clock size={14} className="text-gray-400" />
                         {new Date(appt.start_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                     </td>
-                    <td className="px-5 py-4 font-medium text-gray-900">{appt.customer_name || "Unknown"}</td>
+                    
                     <td className="px-5 py-4 text-gray-500">{getStaffName(appt.staff_id || appt.staff)}</td>
                     <td className="px-5 py-4 text-right">
                         <StatusBadge status={appt.status} />
