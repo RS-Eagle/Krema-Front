@@ -80,7 +80,7 @@ export default function DashboardPage() {
         <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm flex flex-col">
            <div className="p-5 border-b border-gray-100 flex justify-between items-center">
               <h2 className="font-semibold text-gray-800">Today's Appointments</h2>
-              <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">View Calendar</button>
+              
            </div>
            <div className="p-0 overflow-x-auto">
               <AppointmentsTable appointments={appointments} loading={loading} />
